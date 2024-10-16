@@ -1,0 +1,27 @@
+# README - Compilador FOOL
+
+Este projeto é um compilador para a linguagem FOOL, desenvolvido utilizando JFlex e Java Cup. Abaixo estão descritos os comandos necessários para a compilação e execução, bem como a estrutura dos arquivos do projeto.
+
+C:\compiladores-ga4
+│
+├── entrada.txt            # Arquivo de entrada contendo o código FOOL a ser processado.
+├── FOOLExpr.class         # Classe compilada que contém a implementação do compilador.
+├── FOOLExpr.java          # Código-fonte da classe principal do compilador FOOL.
+├── FOOLExprLexer.flex     # Arquivo de definição do scanner, utilizado pelo JFlex.
+├── FOOLExprParser.cup     # Arquivo de definição do parser, utilizado pelo Java Cup.
+├── java-cup-11b.jar       # Biblioteca Java Cup necessária para o funcionamento do parser.
+├── jflex-full-1.8.2.jar    # Biblioteca JFlex necessária para a geração do scanner.
+├── Parser.class           # Classe compilada que contém a implementação do parser.
+├── Parser.java            # Código-fonte da classe Parser, gerado pelo Java Cup.
+├── Scanner.class          # Classe compilada que contém a implementação do scanner.
+└── Scanner.java           # Código-fonte da classe Scanner, gerado pelo JFlex.
+
+
+## Comandos para Compilação e Execução
+
+1. **Gerar o scanner usando JFlex**:
+   ```bash
+jflex - selecione o arquivo FOOLLexer.flex
+java -jar java-cup-11b.jar -parser Parser -symbols Tokens FOOLExprParser.cup
+javac -cp java-cup-11b.jar Parser.java Scanner.java Tokens.java FOOLExpr.java
+java -cp ".;C:\compiladores-ga3\java-cup-11b.jar" FOOLExpr

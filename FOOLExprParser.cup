@@ -1,0 +1,205 @@
+import java_cup.runtime.*;
+import java.util.*;
+import java.io.*;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+
+/*
+Autor: Ruana Boeira Soares
+*/
+
+parser code {:
+
+    // conecta esse parser ao scanner
+    Scanner s;
+    Parser(Scanner s){ this.s=s; }
+
+    // Tabela de símbolos que aceita diferentes tipos
+    java.util.Map<String, Object> simbolos = new java.util.HashMap<String, Object>();
+:}
+
+/* conectar esse parser ao scanner! */
+init with {:  :};
+scan with {: return s.next_token(); :};
+
+/* Terminais (tokens retornados pelo scanner). */
+
+terminal            SEMI, MAIS, MENOS, VEZES, MENOSUNIT, LPAREN, RPAREN, ID, ATRIB, 
+                    LBRACE, RBRACE, COMMA, SEMICOLON, ASSIGN, EQ, LT, GT, 
+                    BOOL, VOID, IF, ELSE, RETURN, TRUE, FALSE, NOT, AND, OR, CLASS, INT;
+
+terminal Integer    NUMERO;        
+
+/* Não terminais */
+non terminal inicio;
+non terminal tipo;
+non terminal Integer exp;
+non terminal Integer exp_arit;
+non terminal Boolean exp_bool;
+non terminal classe_decl;
+non terminal var_decl_list;
+non terminal var_decl;
+non terminal atributos_decl;
+non terminal method_decl_list;
+non terminal metodos_decl;
+non terminal method_decl;
+non terminal atributo_decl;
+non terminal parametros_decl, corpo_metodo, t, idToken, idTipo;
+non terminal param_decl_list, stmt_list, stmt, atrib_stmt, if_stmt, exp_stmt;
+
+
+/* Precedência de operadores */
+precedence left OR;
+precedence left AND;
+precedence left EQ, LT, GT;
+precedence left MAIS, MENOS;
+precedence left VEZES;
+precedence right NOT;
+
+/* Regras de produção */
+
+/* Regra de início, aceita expressões e declaração de classes */
+inicio ::= inicio exp:e SEMI           {: System.out.println(e); :}
+         | exp:e SEMI                  {: System.out.println(e); :}
+         | classe_decl                 {: System.out.println("Classe declarada."); :};
+
+/* Expressao geral */
+         exp ::= exp_arit:e {: RESULT = e; :}
+        | exp_bool:b {: RESULT = b ? 1 : 0; :};  // Avaliamos booleano como 1 ou 0
+
+
+/* Declaração de classe */
+classe_decl ::= CLASS ID:idToken LBRACE var_decl_list method_decl_list RBRACE
+               {: 
+                   String className = (String) ((Symbol) idToken).value;
+                   System.out.println("Classe " + className + " declarada.");
+               :};
+
+/* Lista de declarações de variáveis (atributos da classe) */
+var_decl_list ::= /* vazio */
+                | var_decl_list var_decl;
+
+/* Declaração de variável (atributos) */
+var_decl ::= tipo ID:idToken SEMICOLON 
+            {: 
+                String varName = (String) ((Symbol) idToken).value;
+                System.out.println("Variável " + varName + " declarada.");
+            :};
+
+/* Declaração de métodos */
+method_decl_list ::= /* vazio */
+                   | method_decl_list method_decl;
+
+/* Declaração de método */
+method_decl ::= VOID ID:idToken LPAREN param_decl_list RPAREN LBRACE stmt_list RBRACE
+               {: 
+                   String methodName = (String) ((Symbol) idToken).value;
+                   System.out.println("Método " + methodName + " declarado.");
+               :};
+
+/* Declaração de parâmetros do método */
+param_decl_list ::= /* vazio */
+                  | param_decl_list COMMA tipo ID
+                  | tipo ID;
+
+/* Lista de instruções (corpo do método) */
+stmt_list ::= /* vazio */
+            | stmt_list stmt;
+
+/* Instruções do método */
+stmt ::= atrib_stmt
+       | if_stmt
+       | exp_arit SEMICOLON
+       | exp_bool SEMICOLON
+       | RETURN SEMI
+       | RETURN exp SEMI;
+
+
+              /* Instruções de expressão */
+exp_stmt ::= exp:e {: 
+                    System.out.println("Expressão: " + e); 
+                  :};
+
+
+/* Estruturas condicionais */
+if_stmt ::= IF LPAREN exp RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE
+          {: 
+              System.out.println("Estrutura if-else avaliada.");
+          :};
+
+/* Tipos de dados */
+tipo ::= INT
+       | BOOL;
+
+
+/* Atribuições e operações aritméticas */
+exp_arit ::=   exp_arit:e1 MAIS  exp_arit:e2   {: 
+                   Integer i1 = (Integer) e1;
+                   Integer i2 = (Integer) e2;
+                   RESULT = i1 + i2;                
+               :}
+             | exp_arit:e1 MENOS exp_arit:e2   {: 
+                   Integer i1 = (Integer) e1;
+                   Integer i2 = (Integer) e2;
+                   RESULT = i1 - i2;                
+               :}
+             | exp_arit:e1 VEZES exp_arit:e2   {: 
+                   Integer i1 = (Integer) e1;
+                   Integer i2 = (Integer) e2;
+                   RESULT = i1 * i2;                
+               :}
+             | MENOS exp_arit:e               {: 
+                   RESULT = -((Integer) e);                   
+               :}
+             | LPAREN exp_arit:e RPAREN       {: 
+                   RESULT = e;                    
+               :}
+             | NUMERO:n                      {: 
+                   RESULT = n;                    
+               :}
+             | ID:i	                         {: 
+                   Object value = simbolos.get(i);
+                   if (value instanceof Integer) {
+                       RESULT = (Integer) value;
+                   } else {
+                       throw new RuntimeException("Variable " + i + " is not an integer.");
+                   }
+               :}
+             | ID:i ATRIB exp_arit:e          {: 
+                   if (e instanceof Integer) {
+                       simbolos.put(i.toString(), (Integer) e);  
+                       RESULT = e;  // Retorna o valor atribuído
+                   } else {
+                       throw new RuntimeException("Expected an Integer for assignment");
+                   }
+               :}
+;
+
+/* Expressões booleanas */
+exp_bool ::= exp_arit:e1 EQ exp_arit:e2    {: 
+                RESULT = (e1.equals(e2)); 
+            :}
+           | exp_arit:e1 LT exp_arit:e2    {: 
+                RESULT = (e1 < e2); 
+            :}
+           | exp_arit:e1 GT exp_arit:e2    {: 
+                RESULT = (e1 > e2); 
+            :}
+           | exp_bool:e1 AND exp_bool:e2   {: 
+                RESULT = e1 && e2; 
+            :}
+           | exp_bool:e1 OR exp_bool:e2    {: 
+                RESULT = e1 || e2; 
+            :}
+           | NOT exp_bool:e                {: 
+                RESULT = !e; 
+            :}
+           | TRUE                          {: 
+                RESULT = true; 
+            :}
+           | FALSE                         {: 
+                RESULT = false; 
+            :}
+           | LPAREN exp_bool:e RPAREN      {: 
+                RESULT = e; 
+            :}
+;
