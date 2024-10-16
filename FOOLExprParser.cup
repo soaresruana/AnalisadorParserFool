@@ -64,7 +64,7 @@ inicio ::= inicio exp:e SEMI           {: System.out.println(e); :}
 
 /* Expressao geral */
          exp ::= exp_arit:e {: RESULT = e; :}
-        | exp_bool:b {: RESULT = b ? 1 : 0; :};  // Avaliamos booleano como 1 ou 0
+        | exp_bool:b {: RESULT = b ? 1 : 0; :};  // Avalia booleano como 1 ou 0
 
 
 /* Declaração de classe */

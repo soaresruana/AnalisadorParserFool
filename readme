@@ -10,7 +10,7 @@ C:\compiladores-ga4
 ├── FOOLExprLexer.flex     # Arquivo de definição do scanner, utilizado pelo JFlex.
 ├── FOOLExprParser.cup     # Arquivo de definição do parser, utilizado pelo Java Cup.
 ├── java-cup-11b.jar       # Biblioteca Java Cup necessária para o funcionamento do parser.
-├── jflex-full-1.8.2.jar    # Biblioteca JFlex necessária para a geração do scanner.
+├── jflex-full-1.8.2.jar   # Biblioteca JFlex necessária para a geração do scanner.
 ├── Parser.class           # Classe compilada que contém a implementação do parser.
 ├── Parser.java            # Código-fonte da classe Parser, gerado pelo Java Cup.
 ├── Scanner.class          # Classe compilada que contém a implementação do scanner.
@@ -25,3 +25,46 @@ jflex - selecione o arquivo FOOLLexer.flex
 java -jar java-cup-11b.jar -parser Parser -symbols Tokens FOOLExprParser.cup
 javac -cp java-cup-11b.jar Parser.java Scanner.java Tokens.java FOOLExpr.java
 java -cp ".;C:\compiladores-ga3\java-cup-11b.jar" FOOLExpr
+
+Resultado do teste:
+
+Expressões aritméticas e de atribuição
+
+Entrada:
+a = 4;
+b = 8;
+c = 7;
+a+b+c; = 19
+
+Resultado do Parser:
+4
+8
+7
+19
+
+Expressõe booleanas e de atribuição: Avalia booleano como 1 ou 0
+
+Entrada:
+a < c; // c maior que a = true = 1
+b > c; // b maior que c = true = 1
+a > b; // a maior que b = false = 0
+
+Resultado do Parser:
+1
+1
+0
+
+Entrada:
+a = 5; 
+b = 6; 
+a == b; // comparação = false = 0
+
+Resultado:
+0
+1
+0 // comparação = false = 0
+
+
+As demais produção, como declaração de classe, métodos e condicionais não estão funcionando conforme o esperado. Por este motivo elas não serão exibida no resultado do teste. 
+
+
